@@ -16,7 +16,60 @@
     <!-- load the root require context -->
     <script src="vendor/require/require.js"></script>
     <script src="app/components/require.config.js"></script>
-    <script>require(['app'], function () {})</script>
+	<script src="infinit.e.js"></script>
+	<script src="jquery.js"></script>
+    <script>require(['app'], function (app) {
+		app.config(function($httpProvider){
+			   $httpProvider.interceptors.push('myHttpInterceptor');
+					   $httpProvider.defaults.withCredentials = true;
+		})
+		.factory('myHttpInterceptor', function($q, $window){
+			   return {
+					  request: function(config){
+					  //console.log('Request interception'); // LOG AT REQUEST START
+						
+						try{
+							var cids = infiniteJsConnector.getCIds();
+							//console.log('cids received: ' + cids);
+							if(cids != 'error'){
+								config.url += '?cids='+cids;
+							}
+							
+						}catch(error){
+							/*fail here could happen if infiniteJsConnector is not ready yet*/
+						}
+							  return config || $q.when(config);
+					   }
+			   };
+		});
+		
+		
+  	});
+		$(window).load(function() {
+        try {
+        	infiniteJsConnector.init();
+        }
+        catch (e) {
+        	//console.log("infinite init error: " + e);
+			//console.log(e);
+        }
+        
+        
+		infiniteJsConnector.onNewDocumentSet = function(alreadyHaveAssocs) {
+    		var cids; 
+    		if (!alreadyHaveAssocs) {
+	    		try {
+					cids = infiniteJsConnector.getCommunityIds();
+	    		}
+	    		catch (e) {
+	    			alert("error: " + e);
+	    		}
+    		}
+    		else {
+    			cids = alreadyHaveAssocs;
+		    }
+    	}
+</script>
     <style>
     </style>
 
