@@ -18,57 +18,82 @@
     <script src="app/components/require.config.js"></script>
 	<script src="infinit.e.js"></script>
 	<script src="jquery.js"></script>
-    <script>require(['app'], function (app) {
-		app.config(function($httpProvider){
-			   $httpProvider.interceptors.push('myHttpInterceptor');
-					   $httpProvider.defaults.withCredentials = true;
-		})
-		.factory('myHttpInterceptor', function($q, $window){
+    <script>
+		require(['app'], function (app) {
+			app.config(function($httpProvider){
+				   $httpProvider.interceptors.push('myHttpInterceptor');
+						   $httpProvider.defaults.withCredentials = true;
+			})
+			.factory('myHttpInterceptor', function($q, $window){
 			   return {
-					  request: function(config){
-					  //console.log('Request interception'); // LOG AT REQUEST START
-						
+						request: function(config){
+						//console.log('Request interception'); // LOG AT REQUEST START
+
 						try{
-							var cids = infiniteJsConnector.getCIds();
+							var cids = infiniteJsConnector.getExtraUrlParams();
 							//console.log('cids received: ' + cids);
 							if(cids != 'error'){
-								config.url += '?cids='+cids;
+								config.url += cids;
 							}
-							
+
 						}catch(error){
 							/*fail here could happen if infiniteJsConnector is not ready yet*/
 						}
-							  return config || $q.when(config);
+						return config || $q.when(config);
 					   }
 			   };
+			});
+
+
 		});
 		
-		
-  	});
-		$(window).load(function() {
-        try {
-        	infiniteJsConnector.init();
-        }
-        catch (e) {
-        	//console.log("infinite init error: " + e);
-			//console.log(e);
-        }
-        
-        
 		infiniteJsConnector.onNewDocumentSet = function(alreadyHaveAssocs) {
-    		var cids; 
-    		if (!alreadyHaveAssocs) {
-	    		try {
-					cids = infiniteJsConnector.getCommunityIds();
-	    		}
-	    		catch (e) {
-	    			alert("error: " + e);
-	    		}
-    		}
-    		else {
-    			cids = alreadyHaveAssocs;
-		    }
-    	}
+					var cids; 
+					if (!alreadyHaveAssocs) {
+						try {
+							cids = infiniteJsConnector.getCommunityIds();
+						}
+						catch (e) {
+							alert("error: " + e);
+						}
+					}
+					else {
+						cids = alreadyHaveAssocs;
+					}
+				};
+		infiniteJsConnector.onWidgetLoadWithParameters = function(paramString){
+			//var str = "?cids=1,2,3&mode=live";
+			var str = paramString;
+			var res = str.split("cids=");
+			var cids= res[1].split("&");
+			infiniteJsConnector.setCIds(cids[0]);
+			
+			var sec = str.split("mode=");
+			var mode= sec[1].split("&");
+			infiniteJsConnector.setMode(mode[0]);
+			//document.getElementById("demo").innerHTML = [cids[0],mode[0]];
+			
+		},
+		$(window).load(function() {
+			try {
+				//console.log('window.location.search');
+				//console.log(window.location.search);
+				if(window.location.search.length > 0){
+					infiniteJsConnector.onWidgetLoadWithParameters(window.location.search);
+				}else{				
+					//console.log('params are not present');
+				}
+				infiniteJsConnector.init();
+				
+			}
+			catch (e) {
+				//console.log("infinite init error: " + e);
+				//console.log(e);
+			}
+		});
+        
+        
+		
 </script>
     <style>
     </style>

@@ -21,20 +21,40 @@ var infiniteJsConnector = infiniteJsConnector || {
 	_flashMovie: null,
 	_jsConnectorParent: null,
 	_communityIds: '',
-	
+	_mode: 'live',
+
 	getFlashMovie: function(){
 		return this._flashMovie;
 	},
 	/**
+	*	possible values:
+	*	- live 			... append: &mode=live
+	*	- stashed 		... append: &mode=stashed
+	*   ignore for now   - all records 	... append: &mode=all_records
+	**/
+	getMode: function(){
+		return this._mode;
+	},
+	/**
 	* Grabs the infinit.e.parent js connector object;
 	*/
+	getJsConnectorParent: function(){
+		this._jsConnectorParent = parent.infiniteJsConnectorParent;
+		return parent.infiniteJsConnectorParent;
+	},
 	getCIds: function(){
 		this.getCommunityIds();
 		return this._communityIds;
 	},
-	getJsConnectorParent: function(){
-		this._jsConnectorParent = parent.infiniteJsConnectorParent;
-		return parent.infiniteJsConnectorParent;
+	setCIds:function(cidsString){
+		this._communityIds = cidsString;
+		//console.log('_cids set to: '+this._communityIds);
+		return this._communityIds;
+	},
+	setMode:function(modeString){
+		this._mode = modeString;
+		//console.log('_mode set to: '+this._mode);
+		return this._mode;
 	},
 	getParentId: function() {
         var parentDoc = window;
@@ -55,7 +75,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 		    // the sizes all look fine, so no idea why..
 		    //var id = '#' + infiniteJsConnector.getParentId().substring(7);
 		    //$(window.parent.document).find(id).css("overflow", "hidden");
-		
+
 		    if (document.getElementById) {
 		    	me._flashMovie = parent.document.getElementById("Index");
 				//console.log('_flashmovie set')
@@ -67,7 +87,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 			}
 		}
 	},
-	
+
 	// CALLBACKS
 	onNewDocumentSet: function() {},	
 	onGetAssociations:function(inData){
@@ -85,7 +105,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 			var cIdsStr = me.getFlashMovie().getCommunityIds();
 			if (null != cIdsStr) {
 				//cIds = JSON.parse(cIdsStr);
-				console.log('getCommunityIds client: '+cIdsStr);
+				//console.log('getCommunityIds client: '+cIdsStr);
 				me._communityIds = cIdsStr;
 			}
 		}
@@ -109,7 +129,19 @@ var infiniteJsConnector = infiniteJsConnector || {
 			//alert("getAssociationsJS: " + e);
 		}
 		return associations;
+	},
+	/**
+	*	grabs community ids and current search state
+	**/
+	getExtraUrlParams:function()
+	{
+		try{
+			var cids = this.getCIds();
+			var mode = this.getMode();
+			return '?cids='+cids+'&mode='+mode;
+		}catch(error){
+			return 'error';
+		}
 	}
-	
-}
 
+}
