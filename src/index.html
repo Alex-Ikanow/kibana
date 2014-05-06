@@ -61,6 +61,14 @@
 						cids = alreadyHaveAssocs;
 					}
 				};
+		infiniteJsConnector.setLive = function(isLive){
+				//console.log('setLive called');console.log(isLive);
+				if(isLive==true){
+					infiniteJsConnector._mode = 'live';
+				}else if(isLive==false){
+					infiniteJsConnector._mode = 'stashed';
+				}
+			};
 		infiniteJsConnector.onWidgetLoadWithParameters = function(paramString){
 			//var str = "?cids=1,2,3&mode=live";
 			var str = paramString;
@@ -71,7 +79,6 @@
 			var sec = str.split("mode=");
 			var mode= sec[1].split("&");
 			infiniteJsConnector.setMode(mode[0]);
-			//document.getElementById("demo").innerHTML = [cids[0],mode[0]];
 			
 		},
 		$(window).load(function() {
@@ -87,8 +94,8 @@
 				
 			}
 			catch (e) {
-				//console.log("infinite init error: " + e);
-				//console.log(e);
+				console.log("infinite init error: " + e);
+				console.log(e);
 			}
 		});
         

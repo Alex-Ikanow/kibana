@@ -21,7 +21,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 	_flashMovie: null,
 	_jsConnectorParent: null,
 	_communityIds: '',
-	_mode: 'live',
+	_mode: 'stashed',
 
 	getFlashMovie: function(){
 		return this._flashMovie;
@@ -56,6 +56,14 @@ var infiniteJsConnector = infiniteJsConnector || {
 		//console.log('_mode set to: '+this._mode);
 		return this._mode;
 	},
+	/*setLive:function(isLive){
+		console.log('setLive called');console.log(isLive);
+		if(isLive==true){
+			this._mode = 'live';
+		}else if(isLive==false){
+			this._mode = 'live';
+		}
+	},*/
 	getParentId: function() {
         var parentDoc = window;
         while(parentDoc !== parentDoc.parent)
