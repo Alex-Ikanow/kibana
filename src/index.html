@@ -68,12 +68,17 @@
 		**/
 		infiniteJsConnector.setLive = function(isLive){
 			if(isLive==true){
-				//location needs to be updated
-				window.location = "kibanaBin/dist/index.html#dashboard/elasticsearch/Kibana_LiveTemplate.json";
+				//development location
+				//window.location = "kibanaBin/dist/index.html#Kibana_LiveTemplate.json";
+				//production location
+				window.location = "index.html#Kibana_LiveTemplate.json";
 				infiniteJsConnector.setMode('live');
 				
 			}else if(isLive==false){
-				window.location = "kibanaBin/dist/index.html#dashboard/elasticsearch/Kibana_StashedTemplate.json";
+				//development location
+				//window.location = "kibanaBin/dist/index.html#Kibana_StashedTemplate.json";
+				//production location
+				window.location = "index.html#Kibana_StashedTemplate.json";
 				infiniteJsConnector.setMode('stashed');
 			}
 		};
