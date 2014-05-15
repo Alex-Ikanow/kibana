@@ -109,6 +109,68 @@ var infiniteJsConnector = infiniteJsConnector || {
 		}catch(error){
 			return 'error';
 		}
+	},
+	/**
+	* Fired when a new query is done from IWidget Interface in the actionscript.
+	* This code simply tells infiniteJsConnector to get updated communityIds.
+	* If communityIds are provided, they are set with the parameter passed.
+	*/
+	onNewDocumentSet:function(inCids) {
+		var cids; 
+		if (!inCids) {
+			try {
+				cids = infiniteJsConnector.getCommunityIds();
+			}
+			catch (e) {
+				//alert("error: " + e);
+			}
+		}
+		else {
+			cids = inCids;
+		}
+	},
+	/**
+	* Generally called from actionscript with a true if live, false if stashed. 
+	* This function will set the mode within the infiniteJsConnector object
+	* to be grabbed whenever an httpservice call is made and "mode" is required.
+	**/
+	setLive:function(isLive){
+		if(isLive==true){
+			//development location
+			//window.location = "kibanaBin/dist/index.html#Kibana_LiveTemplate.json";
+			//production location
+			window.location = "index.html#Kibana_LiveTemplate.json";
+			infiniteJsConnector.setMode('live');
+			
+		}else if(isLive==false){
+			//development location
+			//window.location = "kibanaBin/dist/index.html#Kibana_StashedTemplate.json";
+			//production location
+			window.location = "index.html#Kibana_StashedTemplate.json";
+			infiniteJsConnector.setMode('stashed');
+		}
+	},
+	/**
+	* Called when url parameters are provided. 
+	* URL parameters are only ever supplied when the widget is run outside 
+	* of an actionscript iframe.
+	*
+	* Takes the provided parameter string and grabs the cids and mode.
+	* With this information, cids and mode are stored in the infiniteJsConnector
+	* object to be used in anything kibana would need.
+	*
+	* (param) paramString:String example: "?cids=1,2,3&mode=live
+	*/
+	onWidgetLoadWithParameters:function(paramString){
+		var str = paramString;
+		var res = str.split("cids=");
+		var cids= res[1].split("&");
+		infiniteJsConnector.setCIds(cids[0]);
+		
+		var sec = str.split("mode=");
+		var mode= sec[1].split("&");
+		infiniteJsConnector.setMode(mode[0]);
+		
 	}
 
 }
