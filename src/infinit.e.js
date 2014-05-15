@@ -42,28 +42,21 @@ var infiniteJsConnector = infiniteJsConnector || {
 		this._jsConnectorParent = parent.infiniteJsConnectorParent;
 		return parent.infiniteJsConnectorParent;
 	},
+	/** returns set cids **/
 	getCIds: function(){
 		this.getCommunityIds();
 		return this._communityIds;
 	},
+	/** Sets cids **/
 	setCIds:function(cidsString){
 		this._communityIds = cidsString;
-		//console.log('_cids set to: '+this._communityIds);
 		return this._communityIds;
 	},
+	/** sets mode **/
 	setMode:function(modeString){
 		this._mode = modeString;
-		//console.log('_mode set to: '+this._mode);
 		return this._mode;
 	},
-	/*setLive:function(isLive){
-		console.log('setLive called');console.log(isLive);
-		if(isLive==true){
-			this._mode = 'live';
-		}else if(isLive==false){
-			this._mode = 'live';
-		}
-	},*/
 	getParentId: function() {
         var parentDoc = window;
         while(parentDoc !== parentDoc.parent)
@@ -74,72 +67,38 @@ var infiniteJsConnector = infiniteJsConnector || {
         var iFrames = parentDoc.getElementsByTagName('iframe');
         return iFrames[0].getAttribute("id");
 	},
-
+	/**
+	* Initialization consists of defining flashMove in order to communicate
+	* with the actionscript
+	*/
 	init: function () {
-	var me = this;
-	//console.log('kibana infinite.js init');
-		if (null == me._flashMovie) {
-		    // OK for some reason, Chrome puts scroll bars up so we'll remove them...
-		    // the sizes all look fine, so no idea why..
-		    //var id = '#' + infiniteJsConnector.getParentId().substring(7);
-		    //$(window.parent.document).find(id).css("overflow", "hidden");
-
-		    if (document.getElementById) {
-		    	me._flashMovie = parent.document.getElementById("Index");
-				//console.log('_flashmovie set')
-				//console.log(me._flashMovie);
-				//var widgetId = window.frameElement.id; //get widget id for parent to communicate
-				//infiniteJsConnector.getJsConnectorParent().subscribe('getAssociations','onGetAssociations',widgetId);
-		    }else{
-				//console.log('document.getElementById is not defined');
+		var me = this;
+			if (null == me._flashMovie) {
+				if (document.getElementById) {
+					me._flashMovie = parent.document.getElementById("Index");
+				}else{}
 			}
-		}
 	},
-
-	// CALLBACKS
-	onNewDocumentSet: function() {},	
-	onGetAssociations:function(inData){
-		onDataCatch(inData);
-	},
-	pingTool: function(){
-		//console.log('pingTool from infinit.e.jsconnector');
-	},
-	//ACCESSORS
+	/**
+	* Asks actionscript for communityIds. If results are found, they are set
+	* inside of the infiniteJsConnector object and returned
+	*/
 	getCommunityIds: function()
 	{
 		var me = this;
-		var associations = [];
 		try {
 			var cIdsStr = me.getFlashMovie().getCommunityIds();
 			if (null != cIdsStr) {
-				//cIds = JSON.parse(cIdsStr);
-				//console.log('getCommunityIds client: '+cIdsStr);
 				me._communityIds = cIdsStr;
 			}
 		}
 		catch (e) {
-			//console.log('error in infiniteJsConnector.getCommunityIds()');
-			//console.log(e);
-			//alert("getAssociationsJS: " + e);
 		}
 		return cIdsStr;
 	},
-	getAssociations: function(maxAssociations)
-	{
-		var associations = [];
-		try {
-			var associationsStr = infiniteJsConnector._flashMovie.getAssociations(maxAssociations);
-			if (null != associationsStr) {
-				associations = JSON.parse(associationsStr);
-			}
-		}
-		catch (e) {
-			//alert("getAssociationsJS: " + e);
-		}
-		return associations;
-	},
 	/**
 	*	grabs community ids and current search state
+	*	returns string ex: ?cids=1,2,3&mode=live
 	**/
 	getExtraUrlParams:function()
 	{

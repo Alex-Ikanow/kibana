@@ -21,56 +21,73 @@
     <script>
 		require(['app'], function (app) {
 			app.config(function($httpProvider){
-				   $httpProvider.interceptors.push('myHttpInterceptor');
-						   $httpProvider.defaults.withCredentials = true;
+				$httpProvider.interceptors.push('myHttpInterceptor');
+				$httpProvider.defaults.withCredentials = true;
 			})
 			.factory('myHttpInterceptor', function($q, $window){
 			   return {
-						request: function(config){
-						//console.log('Request interception'); // LOG AT REQUEST START
-
-						try{
-							var cids = infiniteJsConnector.getExtraUrlParams();
-							//console.log('cids received: ' + cids);
-							if(cids != 'error'){
-								config.url += cids;
-							}
+					request: function(config){
+					// LOG AT REQUEST START
+					try{
+						var extraParams = infiniteJsConnector.getExtraUrlParams();
+						if(extraParams != 'error'){
+							config.url += extraParams;
+						}
 
 						}catch(error){
 							/*fail here could happen if infiniteJsConnector is not ready yet*/
 						}
 						return config || $q.when(config);
-					   }
+					}
 			   };
 			});
-
-
 		});
-		
-		infiniteJsConnector.onNewDocumentSet = function(alreadyHaveAssocs) {
-					var cids; 
-					if (!alreadyHaveAssocs) {
-						try {
-							cids = infiniteJsConnector.getCommunityIds();
-						}
-						catch (e) {
-							alert("error: " + e);
-						}
-					}
-					else {
-						cids = alreadyHaveAssocs;
-					}
-				};
-		infiniteJsConnector.setLive = function(isLive){
-				//console.log('setLive called');console.log(isLive);
-				if(isLive==true){
-					infiniteJsConnector._mode = 'live';
-				}else if(isLive==false){
-					infiniteJsConnector._mode = 'stashed';
+		/**
+		* Fired when a new query is done from IWidget Interface in the actionscript.
+		* This code simply tells infiniteJsConnector to get updated communityIds.
+		* If communityIds are provided, they are set with the parameter passed.
+		*/
+		infiniteJsConnector.onNewDocumentSet = function(inCids) {
+			var cids; 
+			if (!inCids) {
+				try {
+					cids = infiniteJsConnector.getCommunityIds();
 				}
-			};
+				catch (e) {
+					//alert("error: " + e);
+				}
+			}
+			else {
+				cids = inCids;
+			}
+		};
+		/**
+		* Generally called from actionscript with a true if live, false if stashed. 
+		* This function will set the mode within the infiniteJsConnector object
+		* to be grabbed whenever an httpservice call is made and "mode" is required.
+		**/
+		infiniteJsConnector.setLive = function(isLive){
+			if(isLive==true){
+				window.location = "kibanaBin/dist/index.html#dashboard/elasticsearch/Kibana_LiveTemplate.json";
+				infiniteJsConnector.setMode('live');
+				
+			}else if(isLive==false){
+				window.location = "kibanaBin/dist/index.html#dashboard/elasticsearch/Kibana_StashedTemplate.json";
+				infiniteJsConnector.setMode('stashed');
+			}
+		};
+		/**
+		* Called when url parameters are provided. 
+		* URL parameters are only ever supplied when the widget is run outside 
+		* of an actionscript iframe.
+		*
+		* Takes the provided parameter string and grabs the cids and mode.
+		* With this information, cids and mode are stored in the infiniteJsConnector
+		* object to be used in anything kibana would need.
+		*
+		* (param) paramString:String example: "?cids=1,2,3&mode=live
+		*/
 		infiniteJsConnector.onWidgetLoadWithParameters = function(paramString){
-			//var str = "?cids=1,2,3&mode=live";
 			var str = paramString;
 			var res = str.split("cids=");
 			var cids= res[1].split("&");
@@ -83,19 +100,14 @@
 		},
 		$(window).load(function() {
 			try {
-				//console.log('window.location.search');
-				//console.log(window.location.search);
 				if(window.location.search.length > 0){
 					infiniteJsConnector.onWidgetLoadWithParameters(window.location.search);
-				}else{				
-					//console.log('params are not present');
-				}
+				}else{}
 				infiniteJsConnector.init();
 				
 			}
 			catch (e) {
-				console.log("infinite init error: " + e);
-				console.log(e);
+				//alert("infinite init error: " + e);
 			}
 		});
         
