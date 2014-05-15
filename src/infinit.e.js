@@ -139,14 +139,14 @@ var infiniteJsConnector = infiniteJsConnector || {
 			//development location
 			//window.location = "kibanaBin/dist/index.html#Kibana_LiveTemplate.json";
 			//production location
-			window.location = "index.html#Kibana_LiveTemplate.json";
+			window.location = "infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_LiveTemplate.json";
 			infiniteJsConnector.setMode('live');
 			
 		}else if(isLive==false){
 			//development location
 			//window.location = "kibanaBin/dist/index.html#Kibana_StashedTemplate.json";
 			//production location
-			window.location = "index.html#Kibana_StashedTemplate.json";
+			window.location = "infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_StashedTemplate.json";
 			infiniteJsConnector.setMode('stashed');
 		}
 	},

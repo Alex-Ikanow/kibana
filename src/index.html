@@ -32,6 +32,9 @@
 					request: function(config){
 					// LOG AT REQUEST START
 					try{
+						if (config.url.indexOf('/infinit.e.records/static/kibana/') >= 0) {
+						return config || $q.when(config);
+						}
 						var extraParams = infiniteJsConnector.getExtraUrlParams();
 						if(extraParams != 'error'){
 							config.url += extraParams;
