@@ -68,6 +68,7 @@
 		**/
 		infiniteJsConnector.setLive = function(isLive){
 			if(isLive==true){
+				//location needs to be updated
 				window.location = "kibanaBin/dist/index.html#dashboard/elasticsearch/Kibana_LiveTemplate.json";
 				infiniteJsConnector.setMode('live');
 				
