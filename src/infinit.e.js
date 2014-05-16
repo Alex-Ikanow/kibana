@@ -103,11 +103,10 @@ var infiniteJsConnector = infiniteJsConnector || {
 	getExtraUrlParams:function()
 	{
 		try{
-			var cids = this.getCIds();
-			var mode = this.getMode();
-			return '?cids='+cids+'&mode='+mode;
+			var params =  { 'cids': this.getCIds(), 'mode': this.getMode() };
+			return params;
 		}catch(error){
-			return 'error';
+			return null;
 		}
 	},
 	/**
@@ -163,14 +162,21 @@ var infiniteJsConnector = infiniteJsConnector || {
 	*/
 	onWidgetLoadWithParameters:function(paramString){
 		var str = paramString;
-		var res = str.split("cids=");
-		var cids= res[1].split("&");
-		infiniteJsConnector.setCIds(cids[0]);
-		
-		var sec = str.split("mode=");
-		var mode= sec[1].split("&");
-		infiniteJsConnector.setMode(mode[0]);
-		
+		var params = str.split("&");
+		if (params.length > 0) {
+			for (var x in params) {
+				var keyval = params[x].split('=');
+				if (keyval.length > 1) {
+					var key = keyval[0];
+					if ((key == '?cids') || (key == 'cids')) {
+						infiniteJsConnector.setCIds(keyval[1]);
+					}
+					if ((key == '?mode') || (key == 'mode')) {
+						infiniteJsConnector.setMode(keyval[1]);
+					}
+				}
+			}
+		}
 	}
 
 }

@@ -32,12 +32,20 @@
 					request: function(config){
 					// LOG AT REQUEST START
 					try{
-						if (config.url.indexOf('/infinit.e.records/static/kibana/') >= 0) {
-						return config || $q.when(config);
+						//This and also if already includes ? then append as & instead...
+						if (config.url.slice(0, 4) != 'http') {
+							return config || $q.when(config);
 						}
 						var extraParams = infiniteJsConnector.getExtraUrlParams();
-						if(extraParams != 'error'){
-							config.url += extraParams;
+						if(extraParams != null){
+							if (null == config.params) {
+								config.params = extraParams;
+							}
+							else {
+								for (var x in extraParams) {
+									config.params[x] = extraParams[x];
+								}
+							}
 						}
 					}catch(error){
 							/*fail here could happen if infiniteJsConnector is not ready yet*/
@@ -59,7 +67,6 @@
 					infiniteJsConnector.onWidgetLoadWithParameters(window.location.search);
 				}else{}
 				infiniteJsConnector.init();
-				
 			}
 			catch (e) {
 				//alert("infinite init error: " + e);
