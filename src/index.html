@@ -16,8 +16,7 @@
     <!-- load the root require context -->
     <script src="vendor/require/require.js"></script>
     <script src="app/components/require.config.js"></script>
-	<script src="infinit.e.js"></script>
-	<script src="jquery.js"></script>
+    <script src="infinit.e.js"></script>
     <script>
 	/**
 	* Intercepts all http requests and adds required extra parameters
@@ -61,7 +60,7 @@
 		*
 		* On Page load added in order to check URL parameters and set them appropriately. 
 		*/
-		$(window).load(function() {
+		window.onload=function(){
 			try {
 				if(window.location.search.length > 0){
 					infiniteJsConnector.onWidgetLoadWithParameters(window.location.search);
@@ -71,11 +70,8 @@
 			catch (e) {
 				//alert("infinite init error: " + e);
 			}
-		});
-        
-        
-		
-</script>
+		}
+       </script>
     <style>
     </style>
 
