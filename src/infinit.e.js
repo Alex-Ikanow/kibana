@@ -22,6 +22,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 	_jsConnectorParent: null,
 	_communityIds: '',
 	_mode: 'stashed',
+	_cidFilter: true,
 
 	getFlashMovie: function(){
 		return this._flashMovie;
@@ -103,7 +104,10 @@ var infiniteJsConnector = infiniteJsConnector || {
 	getExtraUrlParams:function()
 	{
 		try{
-			var params =  { 'cids': this.getCIds(), 'mode': this.getMode() };
+			var params =  { 'cids': '', 'mode': this.getMode() };
+			if(this._cidFilter==true){
+				params.cids = this.getCIds();
+			}
 			return params;
 		}catch(error){
 			return null;
@@ -135,19 +139,19 @@ var infiniteJsConnector = infiniteJsConnector || {
 	**/
 	setLive:function(isLive){
 		if(isLive==true){
-			//development location
-			//window.location = "kibanaBin/dist/index.html#Kibana_LiveTemplate.json";
-			//production location
 			window.location = "infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_LiveTemplate.json";
 			infiniteJsConnector.setMode('live');
 			
 		}else if(isLive==false){
-			//development location
-			//window.location = "kibanaBin/dist/index.html#Kibana_StashedTemplate.json";
-			//production location
 			window.location = "infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_StashedTemplate.json";
 			infiniteJsConnector.setMode('stashed');
 		}
+	},
+	/**
+	* Handler for toggle of community filtering.
+	**/
+	setCidFilter:function(isFiltered){
+		this._cidFilter = isFiltered;
 	},
 	/**
 	* Called when url parameters are provided. 
