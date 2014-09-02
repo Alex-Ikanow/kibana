@@ -20,7 +20,6 @@ var infiniteJsConnector = infiniteJsConnector || {
 
 	_flashMovie: null,
 	_jsConnectorParent: null,
-	_communityIds: '',
 	_mode: 'stashed',
 
 	getFlashMovie: function(){
@@ -43,14 +42,8 @@ var infiniteJsConnector = infiniteJsConnector || {
 		return parent.infiniteJsConnectorParent;
 	},
 	/** returns set cids **/
-	getCIds: function(){
-		this.getCommunityIds();
-		return this._communityIds;
-	},
-	/** Sets cids **/
-	setCIds:function(cidsString){
-		this._communityIds = cidsString;
-		return this._communityIds;
+	getCIds: function(url){
+		return this.getCommunityIds(url);
 	},
 	/** sets mode **/
 	setMode:function(modeString){
@@ -80,52 +73,53 @@ var infiniteJsConnector = infiniteJsConnector || {
 			}
 	},
 	/**
-	* Asks actionscript for communityIds. If results are found, they are set
-	* inside of the infiniteJsConnector object and returned
+	* Asks actionscript for communityIds. 
 	*/
-	getCommunityIds: function()
+	getCommunityIds: function(url)
 	{
 		var me = this;
 		try {
-			var cIdsStr = me.getFlashMovie().getCommunityIds();
-			if (null != cIdsStr) {
-				me._communityIds = cIdsStr;
-			}
+			var cIdsStr = me.getFlashMovie().getCommunityIds(url);
 		}
 		catch (e) {
 		}
 		return cIdsStr;
 	},
 	/**
+	* Asks actionscript for data set flags (docs vs custom vs map/reduce). 
+	*/
+	getDatasetFlags: function()
+	{
+		var me = this;
+		try {
+			var datasetFlags = me.getFlashMovie().getDatasetFlags();
+		}
+		catch (e) {
+		}
+		return datasetFlags;
+	},
+	/**
 	*	grabs community ids and current search state
 	*	returns string ex: ?cids=1,2,3&mode=live
 	**/
-	getExtraUrlParams:function()
+	getExtraUrlParams:function(url)
 	{
 		try{
-			var params =  { 'cids': this.getCIds(), 'mode': this.getMode() };
+			var params =  { 'cids': this.getCIds(url), 'mode': this.getMode() };
+			var datasetFlags = this.getDatasetFlags();
+			if (datasetFlags && (datasetFlags.length > 0)) {
+				var datasetFlagsObj = datasetFlags.split('&');
+				for (var x in datasetFlagsObj) {
+					var paramPair = datasetFlagsObj[x].split("=", 2);
+					if ((2 == paramPair.length) && (paramPair[0].length > 0)) {
+						params[paramPair[0]] = paramPair[1];
+					}
+				}
+			}
 			return params;
 		}catch(error){
+			console.log("getExtraUrlParams: " + error.message)
 			return null;
-		}
-	},
-	/**
-	* Fired when a new query is done from IWidget Interface in the actionscript.
-	* This code simply tells infiniteJsConnector to get updated communityIds.
-	* If communityIds are provided, they are set with the parameter passed.
-	*/
-	onNewDocumentSet:function(inCids) {
-		var cids; 
-		if (!inCids) {
-			try {
-				cids = infiniteJsConnector.getCommunityIds();
-			}
-			catch (e) {
-				//alert("error: " + e);
-			}
-		}
-		else {
-			cids = inCids;
 		}
 	},
 	/**
@@ -138,14 +132,14 @@ var infiniteJsConnector = infiniteJsConnector || {
 			//development location
 			//window.location = "kibanaBin/dist/index.html#Kibana_LiveTemplate.json";
 			//production location
-			window.location = "infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_LiveTemplate.json";
+			window.location = "/infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_LiveTemplate.json";
 			infiniteJsConnector.setMode('live');
 			
 		}else if(isLive==false){
 			//development location
 			//window.location = "kibanaBin/dist/index.html#Kibana_StashedTemplate.json";
 			//production location
-			window.location = "infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_StashedTemplate.json";
+			window.location = "/infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_StashedTemplate.json";
 			infiniteJsConnector.setMode('stashed');
 		}
 	},
