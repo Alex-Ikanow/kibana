@@ -69,7 +69,7 @@
           "editable": true,
           "type": "terms",
           "loadingEditor": false,
-          "field": "sourceKey.raw",
+          "field": "sourceKey",
           "exclude": [],
           "missing": true,
           "other": true,
