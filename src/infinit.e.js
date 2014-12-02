@@ -220,18 +220,6 @@ require(['app', 'angular'], function (app, angular) {
 		};
 	});
 
-	//Attaching to window for debugging
-	app.run(function(infinite, dashboard) {
-		window.Dash = dashboard;
-	});
-
-
-	//To trigger a refresh...
-	//$scope.init();
-
-
-	//infiniteController.init();
-
 });
 
 /**
