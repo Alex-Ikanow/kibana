@@ -236,19 +236,55 @@ function (angular, _, config, kbn) {
 
     // This populates the internal query list and returns a promise containing it
     this.resolve = function() {
+      console.log('[querySrv->resolve] Current IDS:', self.ids );
+      console.log('[querySrv->resolve] Current List:', self.list );
       // Find ids of all abstract queries
       // Get a list of resolvable ids, constrast with total list to get abstract ones
-      return $q.all(_.map(self.ids,function(q) {
-        return self.queryTypes[self.list[q].type].resolve(_.clone(self.list[q])).then(function(data){
-          return data;
-        });
-      })).then(function(data) {
-        resolvedQueries = _.flatten(data);
-        _.each(resolvedQueries,function(q,i) {
-          q.id = i;
-        });
-        return resolvedQueries;
-      });
+
+      var theMapping = _.map(
+          self.ids,
+          function(q) {
+            console.log("[querySrv->resolve] Mapping ID", q );
+            console.log("[querySrv->resolve] Mapping of type",  _.clone( self.list[q] ) );
+            console.log("[querySrv->resolve] QueryType", self.queryTypes[self.list[q].type]);
+
+            var qTypePromise = self.queryTypes[self.list[q].type].resolve( _.clone( self.list[q] ));
+
+            qTypePromise.then(
+              function(data){
+                console.log("[querySrv->resolve] Map ID Resolved", data);
+                return data;
+              },function(err){
+                console.log("[querySrv->resolve] Map ID Resolution failed", err );
+              }
+            );
+            qTypePromise.always(function(){
+              console.log("[querySrv->resolve] Always");
+            });
+
+            console.log("[querySrv->resolve] qTypePromise", qTypePromise );
+
+            return qTypePromise;
+          }
+      );
+
+      //console.log('[querySrv->resolve] waiting for the map to complete', theMapping );
+      return $q.all(
+          theMapping
+      ).then(
+        function(data) {
+          console.log('[querySrv->resolve] map complete.', data );
+          resolvedQueries = _.flatten(data);
+          _.each(resolvedQueries,function(q,i) {
+            q.id = i;
+          });
+          return resolvedQueries;
+        },
+        function(err){
+            console.log('[querySrv->resolve] map error');
+            console.error(err);
+        }
+      );
     };
 
     var nextId = function() {

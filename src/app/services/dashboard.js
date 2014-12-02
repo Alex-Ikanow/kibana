@@ -140,7 +140,11 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
     // Since the dashboard is responsible for index computation, we can compute and assign the indices
     // here before telling the panels to refresh
     this.refresh = function() {
+      console.log("[services/dashboard->refresh] Start");
       if(self.current.index.interval !== 'none') {
+
+        console.log("[services/dashboard->refresh] Start");
+
         if(_.isUndefined(filterSrv)) {
           return;
         }
@@ -178,8 +182,12 @@ function (angular, $, kbn, _, config, moment, Modernizr) {
         }
       } else {
         self.indices = [self.current.index.default];
-        querySrv.resolve().then(function(){$rootScope.$broadcast('refresh');});
+        querySrv.resolve().then(function(){
+          console.log("[services/dashboard->refresh] querySrv Complete");
+          $rootScope.$broadcast('refresh');
+        });
       }
+      console.log("[services/dashboard->refresh] Complete");
     };
 
     var dash_defaults = function(dashboard) {
