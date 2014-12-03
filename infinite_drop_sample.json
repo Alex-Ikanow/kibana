@@ -1,0 +1,70 @@
+{
+  "qtOptions": null,
+  "score": {
+    "numAnalyze": 1000,
+    "geoProx": {
+      "ll": ",",
+      "decay": "100"
+    },
+    "adjustAggregateSig": null,
+    "tagWeights": null,
+    "typeWeights": null,
+    "relWeight": 33,
+    "sourceWeights": null,
+    "sigWeight": 67,
+    "scoreEnts": true,
+    "timeProx": {
+      "time": "now",
+      "decay": "1m"
+    }
+  },
+  "output": {
+    "aggregation": {
+      "eventsNumReturn": 100,
+      "geoNumReturn": 1000,
+      "entsNumReturn": 250,
+      "timesInterval": "1w",
+      "factsNumReturn": 100
+    },
+    "docs": {
+      "summaries": true,
+      "enable": true,
+      "skip": 0,
+      "geo": true,
+      "ents": true,
+      "numReturn": 100,
+      "events": true,
+      "eventsTimeline": false,
+      "facts": true,
+      "metadata": true
+    },
+    "format": "json",
+    "filter": {
+      "assocVerbs": null,
+      "entityTypes": null
+    }
+  },
+  "qt": [
+    {"etext": "*"},
+    {"entity": "united states/country"},
+    {"entity": "eu/region"},
+    {"entity": "author/position"},
+    {"entity": "writer/position"},
+    {"entity": "european union/organization"},
+    {"entity": "the guardian/company"},
+    {"entity": "the guardian/publishedmedium"},
+    {"entity": "bt group plc/company"},
+    {"entity": "security journalist/position"}
+  ],
+  "communityIds": [
+    "4c927585d591d31d7b37097a",
+    "4e1f545315c1b0b2c4d4f4a3",
+    "50d251f5e4b001acdb3acfad",
+    "51a60d9ee4b05fca332279a1",
+    "51dc4c9be4b06fb250fbc3bb",
+    "52127133e4b09d02c6dade3c",
+    "527bb108e4b026ff8e622c39",
+    "54614827e4b0f8c1535af128"
+  ],
+  "logic": " 1 AND ( 2 OR 3 OR 4 OR 5 OR 6 OR 7 OR 8 OR 9 OR 10 ) "
+}

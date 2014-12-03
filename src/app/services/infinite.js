@@ -1,3 +1,9 @@
+/**
+ * This service also exposes an interface to a parent container, given this application
+ * is within an iframe.
+ *
+ *
+ */
 define([
     'angular',
     'lodash',
