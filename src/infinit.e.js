@@ -220,6 +220,10 @@ require(['app', 'angular'], function (app, angular) {
 		};
 	});
 
+	//Attaching to window for debugging
+	app.run(function(infinite) {
+	});
+
 });
 
 /**
