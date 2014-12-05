@@ -188,10 +188,13 @@ var infiniteJsConnector = infiniteJsConnector || {
  */
 require(['app', 'angular'], function (app, angular) {
 
-	app.run(function(jsApiService) {
-		jsApiService.install( true ); //Add the api to the window and the window's parent if it exists.s
+	//Configure the kibanaJsApi when angular is done loading the app
+	app.run(function(kibanaJsApiSrv) {
+		//Add the api to the window and the window's parent if it exists
+		kibanaJsApiSrv.install( true );
 	});
 
+	//Create an http interceptor to alter kibana->elasticsearch requests
 	app.config(function($httpProvider){
 		$httpProvider.interceptors.push('myHttpInterceptor');
 		$httpProvider.defaults.withCredentials = true;
