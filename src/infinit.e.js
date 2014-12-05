@@ -181,13 +181,17 @@ var infiniteJsConnector = infiniteJsConnector || {
 			}
 		}
 	}
-
-}
+};
 
 /**
  * Intercepts all http requests and adds required extra parameters
  */
 require(['app', 'angular'], function (app, angular) {
+
+	app.run(function(jsApiService) {
+		jsApiService.install( true ); //Add the api to the window and the window's parent if it exists.s
+	});
+
 	app.config(function($httpProvider){
 		$httpProvider.interceptors.push('myHttpInterceptor');
 		$httpProvider.defaults.withCredentials = true;
@@ -220,9 +224,6 @@ require(['app', 'angular'], function (app, angular) {
 		};
 	});
 
-	//Attaching to window for debugging
-	app.run(function(infinite) {
-	});
 
 });
 
