@@ -62,15 +62,13 @@ define([
             //Empty the query but don't $apply yet
             this.resetQueryList( true /*No Refresh*/ );
 
-            for (var i in queryList ) {
-              console.log("[KibanaJsApi->setQuery]    Setting Item", queryList[i]);
-              var q = queryList[i];
+            _.each( queryList, function(q){
               if( q.id == 0 ) {
                 querySrv.set( q, 0 );
               } else {
                 querySrv.set( q );
               }
-            }
+            });
 
             //refresh and apply
             this.refreshDashboard();
@@ -85,11 +83,9 @@ define([
           resetQueryList: function( noRefresh ){
             console.log("[KibanaJsApi->resetQueryList] Resetting query to single '*'");
 
-            var queryIDs = querySrv.ids();
-            for (var n in queryIDs) {
-              var queryId = queryIDs[n];
-              querySrv.remove(queryId);
-            }
+            _.each(querySrv.ids(), function(qId){
+              querySrv.remove(qId);
+            });
 
             //Reset the first item to '*'
             querySrv.set({
@@ -144,11 +140,9 @@ define([
 
           removeFilters: function () {
             console.log("[KibanaJsApi->removeFilters]");
-            var filterIDs = filterSrv.ids();
-            for (var n in filterIDs) {
-              var filterId = filterIDs[n];
-              filterSrv.remove(filterId);
-            }
+            _.each( filterSrv.ids(), function(fId){
+              filterSrv.remove(fId);
+            });
           },
 
           exportConfig: function(){
@@ -196,7 +190,7 @@ define([
             console.log("[jsApiService] Install API to IFrame Parent");
             window.parent.kibanaJsApi = kibanaJsApi;
           }
-        }
+        };
 
         // Now init
         self.init();
