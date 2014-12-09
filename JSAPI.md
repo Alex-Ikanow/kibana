@@ -6,7 +6,7 @@ Built by Ikanow to expose some internal kibana functionality via a simple JavaSc
 **Function Summary**
 
 Dashboard Functions
-* install( boolean addToParent )
+* installToParent( void )
 * refreshDashboard( void )
 * exportConfig
 * exportConfigJson
@@ -17,13 +17,13 @@ Query & Filter Functions
 * addQuery( void )
 * getQueryList( void )
 * getQueryListJson( void )
-* setQueryList( queryList, append )
-* setQueryListJson( queryListJson, append )
+* setQueryList( newList, skipReset, appendOnly )
+* setQueryListJson( newListJson, skipReset, appendOnly )
 * resetQueryList( void )
 * getFilters( void )
 * getFiltersJson( void )
-* setFilters( filters ) 
-* setFiltersJson( filtersJson )
+* setFilters( filters, skipReset, appendOnly ) 
+* setFiltersJson( filtersJson, skipReset, appendOnly )
 * removeFilters( void )
 
 **Sample Objects**
@@ -90,18 +90,18 @@ If the API needs to be installed on a parent window use the installToParent meth
   _Used to forcefully refresh the Kibana Dashboard after changes._
 
 * **Params: none**
-* **Returns:**
+* **Returns: boolean**
 
-  void
+  True on success
 
 ###.addQuery()###
 
   _Add a new (empty) query item._
 
 * **Params: none**
-* **Returns:**
+* **Returns: boolean**
 
-  void
+  True on success
 
 
 ###.getQueryList()###
@@ -120,7 +120,7 @@ If the API needs to be installed on a parent window use the installToParent meth
 
   JSON String representation of .getQueryList();  
   
-###.setQueryList( queryList, append )###
+###.setQueryList( queryList, skipReset, appendOnly )###
 
   _Update the QueryList by replacing all elements in the query. Or optionally appending the elements from QueryList._
 
@@ -128,15 +128,19 @@ If the API needs to be installed on a parent window use the installToParent meth
 
   **queryList: Array\<QueryItem\>**
   
-  **append: Boolean**
+  **skipReset: Boolean**
   
-  When append is boolean TRUE, the current queryList will not be removed before inserting items from queryList.
-
-* **Returns:**
-
-  void
+  When true,the current query list will not be removed before add or updating items.
   
-###.setQueryListJson( queryListJson, append )###
+  **appendOnly: Boolean**
+  
+  When append is boolean TRUE, IDs on new items will be ignored and all items are trested as new.
+
+* **Returns: Boolean**
+
+  true on success
+  
+###.setQueryListJson( queryListJson, skipReset, appendOnly )###
 
   _Same as setQueryList but accepts a JSON String as the source data. Useful for passing complex objects through simple interfaces. Eg. Flash's ExternalInterface._
   
@@ -146,9 +150,9 @@ If the API needs to be installed on a parent window use the installToParent meth
   
 * **Params: none**
 
-* **Returns:**
+* **Returns: boolean**
 
-  void
+  True on success
   
 ###.getFilters()###
 
@@ -166,7 +170,7 @@ If the API needs to be installed on a parent window use the installToParent meth
 
   JSON String representation of .getFilters();  
   
-###.setFilters( filters, updateOnly )###
+###.setFilters( filters, skipReset, appendOnly )###
 
   _Update the filters by replacing all filters. Or optionally only updating and appending using the new filters provided._
 
@@ -174,15 +178,19 @@ If the API needs to be installed on a parent window use the installToParent meth
 
   **filters: Array\<Filter\>**
   
-  **updateOnly: Boolean**
+  **skipReset: Boolean**
   
-  When updateOnly is boolean TRUE, the existing filters will not be rmoved. Subsequently, items without an ID or an ID that does not currently exist will be added. Items with an ID that match a current filter will be updated.
-
-* **Returns:**
-
-  void
+  When true,the current query list will not be removed before add or updating items.
   
-###.setFiltersJson( filtersJson, updateOnly )###
+  **appendOnly: Boolean**
+  
+  When append is boolean TRUE, IDs on new items will be ignored and all items are trested as new.
+
+* **Returns: boolean**
+
+  True on success
+  
+###.setFiltersJson( filtersJson, skipReset, appendOnly )###
 
   _Same as setFilters but accepts a JSON String as the source data. Useful for passing complex objects through simple interfaces. Eg. Flash's ExternalInterface._
 
@@ -190,8 +198,8 @@ If the API needs to be installed on a parent window use the installToParent meth
 
   _Remove all filters and refresh the dashboard._
   
-* **Returns:**
+* **Returns: boolean**
 
-  void
+  True on success
   
 
