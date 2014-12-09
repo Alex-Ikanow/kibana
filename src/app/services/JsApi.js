@@ -105,33 +105,33 @@ define([
       /**
        * Replace the current query list with a new one
        * @param {Array<QueryItem>} newList An array of query items
-       * @param {Boolean} append Only add elements, don't update using IDs
+       * @param {Boolean} skipReset Don't reset the Query List to '*'
+       * @param {Boolean} appendOnly Only add elements, don't update using IDs
        * @returns {Boolean} True on success.
        */
-      self.setQueryList = function( newList, append ){
+      self.setQueryList = function( newList, skipReset, appendOnly ){
 
         console.log("[KibanaJsApi->setQueryList] Setting query", newList);
 
-        if( append === true ){
-
-
-
-        } else {
-
+        //If skip reset wasn't set or isn't true, then we reset.
+        if( skipReset !== true ) {
           console.log("[KibanaJsApi->setQueryList]    Clearing query before setting items");
-
           //Empty the query but don't $apply yet
-          this.resetQueryList( true /*No Refresh*/ );
-
-          _.each( newList, function(q){
-            if( q.id === 0 ) {
-              querySrv.set( q, 0 );
-            } else {
-              querySrv.set( q );
-            }
-          });
-
+          this.resetQueryList(true /*No Refresh*/);
         }
+
+        _.each( newList, function(q){
+
+          if( appendOnly === true && q.hasOwnProperty('id') ) {
+            delete q.id; //unset ID - Forces new item
+          }
+
+          if( q.hasOwnProperty('id') && q.id === 0 ) {
+            querySrv.set( q, 0 );
+          } else {
+            querySrv.set( q );
+          }
+        });
 
         //refresh and apply
         this.refreshDashboard();
@@ -142,13 +142,14 @@ define([
       /**
        * Replace the current query list with a new one using a json string
        * @param {String} queryListJson A JSON String representing an array of query items.
-       * @param {Boolean} append Only add elements, don't update using IDs
+       * @param {Boolean} skipReset Don't reset the Query List to '*'
+       * @param {Boolean} appendOnly Only add elements, don't update using IDs
        * @returns {Boolean} True on success.
        */
-      self.setQueryListJson = function (queryListJson, append) {
+      self.setQueryListJson = function (queryListJson, skipReset, appendOnly) {
         console.log("[KibanaJsApi->setQueryListJson] setting query list from json text");
         var queryList = angular.fromJson(queryListJson);
-        return this.setQueryList(queryList, append);
+        return this.setQueryList(queryList, skipReset, appendOnly );
       };
 
       /**
@@ -205,19 +206,48 @@ define([
        * Replace the dashboards current filters with a new set. UpdateOnly will not
        * remove any items before setting the new ones in place.
        * @param {Array<Filter>} filters An array of filters
-       * @param {Boolean} updateOnly Set to boolean true to skip the removal process before setting filters.
+       * @param {Boolean} skipReset Don't clear all filters before adding / setting new items.
+       * @param {Boolean} appendOnly Only add elements, don't update using IDs
        * @returns {Boolean} True on success.
        */
-      self.setFilters = function( filters, updateOnly){
-        console.log("[KibanaJsApi->setFiltersJson] setting filters", filters);
+      self.setFilters = function( filters, skipReset, appendOnly ){
+        console.log("[KibanaJsApi->setFilters] setting filters", filters);
 
-        if (updateOnly !== true) {
-          this.removeFilters();
+        if (skipReset !== true) {
+          this.removeFilters( true ); //true for no refresh
         }
 
         _.each(filters, function (filter) {
-          console.log("[KibanaJsApi->setFilters]   setting filter", filter);
-          filterSrv.set(filter, undefined, true); // true for no refresh
+
+          if( appendOnly === true || !filter.hasOwnProperty('id') ) {
+
+            //Remove IDs for less confusion
+            if( filter.hasOwnProperty('id') ){
+              delete filter.id;
+            }
+
+            console.log("[KibanaJsApi->setFilters]   appending filter", filter);
+            filterSrv.set(filter, undefined, true); // true for no refresh
+
+          } else {
+
+            //Even if the filter has an ID, if that ID does not exist we must add it. Updating will fail.
+            var filterExists = false;
+            _.each( this.getFilters(), function(f){
+              if(f.id == filter.id) {
+                filterExists = true;
+              }
+            });
+
+            if( filterExists ) {
+              console.log("[KibanaJsApi->setFilters]   updating filter", filter);
+              filterSrv.set(filter, filter.id, true); // true for no refresh
+            } else {
+              console.log("[KibanaJsApi->setFilters]   adding filter", filter);
+              filterSrv.set(filter, undefined, true); // true for no refresh
+            }
+          }
+
         });
 
         //refresh and apply
@@ -229,24 +259,28 @@ define([
       /**
        * See setFilters above. Accepts a JSON String representing an array of filters.
        * @param {String} filtersJson JSON String representing an array of Filters.
-       * @param {Boolean} updateOnly Set to boolean true to skip the removal process before setting filters.
+       * @param {Boolean} skipReset Don't clear all filters before adding / setting new items.
+       * @param {Boolean} appendOnly Only add elements, don't update using IDs
        * @returns {Boolean} True on success.
        */
-      self.setFiltersJson = function (filtersJson, updateOnly) {
+      self.setFiltersJson = function (filtersJson, skipReset, appendOnly) {
         console.log("[KibanaJsApi->setFiltersJson] setting filters", filtersJson);
         var filters = angular.fromJson(filtersJson);
-        return this.setFilters(filters,updateOnly);
+        return this.setFilters(filters, skipReset, appendOnly);
       };
 
       /**
        * Remove all the filters from the dashboard
        * @returns {Boolean} True on success.
        */
-      self.removeFilters = function () {
+      self.removeFilters = function ( noRefresh ) {
         console.log("[KibanaJsApi->removeFilters]");
         _.each( filterSrv.ids(), function(fId){
-          filterSrv.remove(fId);
+          filterSrv.remove(fId, true); //true for noRefresh
         });
+        if( noRefresh !== true ){
+          this.refreshDashboard();
+        }
         return true;
       };
 
