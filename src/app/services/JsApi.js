@@ -25,13 +25,13 @@ define([
        * Attach event listeners to some internal kibana events so we can expose them.
        */
       self.init = function () {
-        console.log("[kibanaJsApi] init");
+        //console.log("[kibanaJsApi] init");
 
         window.kibanaJsApi = this;
 
         //Monitor Kibana events so we can expose them
         $rootScope.$on('refresh', function () {
-          console.log("[kibanaJsApi] Refresh observed");
+          //console.log("[kibanaJsApi] Refresh observed");
           //TODO expose refresh event
         });
       };
@@ -43,7 +43,7 @@ define([
       self.installToParent = function(){
         //Install the KibanaJsApi to Kibana's container's document if it exists
         if (window.parent !== window) {
-          console.log("[kibanaJsApi->installToParent] Install API to IFrame Parent");
+          //console.log("[kibanaJsApi->installToParent] Install API to IFrame Parent");
           window.parent.kibanaJsApi = this;
         }
         return true;
@@ -54,7 +54,7 @@ define([
        * @returns {Boolean} True on success.
        */
       self.refreshDashboard = function () {
-        console.log("[KibanaJsApi->refreshDashboard] Refreshing dashboard");
+        //console.log("[KibanaJsApi->refreshDashboard] Refreshing dashboard");
         dashboard.refresh();
         $rootScope.$apply();
         return true;
@@ -66,7 +66,7 @@ define([
        * @returns {Boolean} True on success.
        */
       self.addQuery = function( queryItem ) {
-        console.log("[KibanaJsApi->addQuery] New Item: ", queryItem);
+        //console.log("[KibanaJsApi->addQuery] New Item: ", queryItem);
 
         //If nothing was passed add an empty query item
         if( !queryItem ) {
@@ -87,7 +87,7 @@ define([
        * @returns {Array<QueryItem>} An array of query items
        */
       self.getQueryList = function(){
-        console.log("[KibanaJsApi->getQueryList]");
+        //console.log("[KibanaJsApi->getQueryList]");
         return querySrv.getQueryObjs();
       };
 
@@ -96,9 +96,9 @@ define([
        * @returns {String} A JSON String representing the current array of query items
        */
       self.getQueryListJson = function () {
-        console.log("[KibanaJsApi->getQueryListJson]");
+        //console.log("[KibanaJsApi->getQueryListJson]");
         var queryListJson = angular.toJson( this.getQueryList(), false);
-        console.log("[KibanaJsApi->getQueryListJson] Query: ", queryListJson);
+        //console.log("[KibanaJsApi->getQueryListJson] Query: ", queryListJson);
         return queryListJson;
       };
 
@@ -111,11 +111,11 @@ define([
        */
       self.setQueryList = function( newList, skipReset, appendOnly ){
 
-        console.log("[KibanaJsApi->setQueryList] Setting query", newList);
+        //console.log("[KibanaJsApi->setQueryList] Setting query", newList);
 
         //If skip reset wasn't set or isn't true, then we reset.
         if( skipReset !== true ) {
-          console.log("[KibanaJsApi->setQueryList]    Clearing query before setting items");
+          //console.log("[KibanaJsApi->setQueryList]    Clearing query before setting items");
           //Empty the query but don't $apply yet
           this.resetQueryList(true /*No Refresh*/);
         }
@@ -147,7 +147,7 @@ define([
        * @returns {Boolean} True on success.
        */
       self.setQueryListJson = function (queryListJson, skipReset, appendOnly) {
-        console.log("[KibanaJsApi->setQueryListJson] setting query list from json text");
+        //console.log("[KibanaJsApi->setQueryListJson] setting query list from json text");
         var queryList = angular.fromJson(queryListJson);
         return this.setQueryList(queryList, skipReset, appendOnly );
       };
@@ -158,7 +158,7 @@ define([
        * @returns {Boolean} True on success.
        */
       self.resetQueryList = function( noRefresh ){
-        console.log("[KibanaJsApi->resetQueryList] Resetting query to single '*'");
+        //console.log("[KibanaJsApi->resetQueryList] Resetting query to single '*'");
 
         _.each(querySrv.ids(), function(qId){
           querySrv.remove(qId);
@@ -187,7 +187,7 @@ define([
        * @returns Array<Filter>
        */
       self.getFilters = function() {
-        console.log("[KibanaJsApi->getFilters]");
+        //console.log("[KibanaJsApi->getFilters]");
         return filterSrv.list();
       };
 
@@ -196,9 +196,9 @@ define([
        * @returns {String} JSON String representation of an array of Filters.
        */
       self.getFiltersJson = function () {
-        console.log("[KibanaJsApi->getFiltersJson]");
+        //console.log("[KibanaJsApi->getFiltersJson]");
         var filtersJson = angular.toJson(this.getFilters(), false);
-        console.log("[KibanaJsApi->getFiltersJson] Filters: ", filtersJson);
+        //console.log("[KibanaJsApi->getFiltersJson] Filters: ", filtersJson);
         return filtersJson;
       };
 
@@ -211,7 +211,7 @@ define([
        * @returns {Boolean} True on success.
        */
       self.setFilters = function( filters, skipReset, appendOnly ){
-        console.log("[KibanaJsApi->setFilters] setting filters", filters);
+        //console.log("[KibanaJsApi->setFilters] setting filters", filters);
 
         if (skipReset !== true) {
           this.removeFilters( true ); //true for no refresh
@@ -226,7 +226,7 @@ define([
               delete filter.id;
             }
 
-            console.log("[KibanaJsApi->setFilters]   appending filter", filter);
+            //console.log("[KibanaJsApi->setFilters]   appending filter", filter);
             filterSrv.set(filter, undefined, true); // true for no refresh
 
           } else {
@@ -240,10 +240,10 @@ define([
             });
 
             if( filterExists ) {
-              console.log("[KibanaJsApi->setFilters]   updating filter", filter);
+              //console.log("[KibanaJsApi->setFilters]   updating filter", filter);
               filterSrv.set(filter, filter.id, true); // true for no refresh
             } else {
-              console.log("[KibanaJsApi->setFilters]   adding filter", filter);
+              //console.log("[KibanaJsApi->setFilters]   adding filter", filter);
               filterSrv.set(filter, undefined, true); // true for no refresh
             }
           }
@@ -264,7 +264,7 @@ define([
        * @returns {Boolean} True on success.
        */
       self.setFiltersJson = function (filtersJson, skipReset, appendOnly) {
-        console.log("[KibanaJsApi->setFiltersJson] setting filters", filtersJson);
+        //console.log("[KibanaJsApi->setFiltersJson] setting filters", filtersJson);
         var filters = angular.fromJson(filtersJson);
         return this.setFilters(filters, skipReset, appendOnly);
       };
@@ -274,7 +274,7 @@ define([
        * @returns {Boolean} True on success.
        */
       self.removeFilters = function ( noRefresh ) {
-        console.log("[KibanaJsApi->removeFilters]");
+        //console.log("[KibanaJsApi->removeFilters]");
         _.each( filterSrv.ids(), function(fId){
           filterSrv.remove(fId, true); //true for noRefresh
         });
