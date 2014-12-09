@@ -104,13 +104,13 @@ define([
 
       /**
        * Replace the current query list with a new one
-       * @param {Array<QueryItem>} queryList An array of query items
+       * @param {Array<QueryItem>} newList An array of query items
        * @param {Boolean} append Only add elements, don't update using IDs
        * @returns {Boolean} True on success.
        */
       self.setQueryList = function( newList, append ){
 
-        console.log("[KibanaJsApi->setQueryList] Setting query", queryList);
+        console.log("[KibanaJsApi->setQueryList] Setting query", newList);
 
         if( append === true ){
 
