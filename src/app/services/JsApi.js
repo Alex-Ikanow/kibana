@@ -1,6 +1,12 @@
 /**
  * This service also exposes an interface to a parent container, given this application
- * is within an iframe.
+ * is within an IFrame. The file JSAPI.md in the root of this project has more information
+ * on how to use this API.
+ *
+ * @typedef {{}} QueryItem; //See JSAPI.md for more information
+ * @typedef {Object} Filter;    //See JSAPI.md for more information
+ * @typedef {Config} Config;    //Not yet implemented.
+ *
  */
 define([
     'angular',
@@ -21,6 +27,8 @@ define([
       self.init = function () {
         console.log("[kibanaJsApi] init");
 
+        window.kibanaJsApi = this;
+
         //Monitor Kibana events so we can expose them
         $rootScope.$on('refresh', function () {
           console.log("[kibanaJsApi] Refresh observed");
@@ -29,46 +37,54 @@ define([
       };
 
       /**
-       * Add the kibanaJsApi instance to this window and optionally a parent container.
-       * @param installToParent
+       * Add the kibanaJsApi instance to this window's parent container.
+       * @returns {Boolean} True on success.
        */
-      self.install = function( installToParent ){
-        window.kibanaJsApi = this;
-        //Install the KibanaJsApi to kibana's container's document if it exists
-        if (installToParent && window.parent !== window) {
-          console.log("[kibanaJsApi] Install API to IFrame Parent");
+      self.installToParent = function(){
+        //Install the KibanaJsApi to Kibana's container's document if it exists
+        if (window.parent !== window) {
+          console.log("[kibanaJsApi->installToParent] Install API to IFrame Parent");
           window.parent.kibanaJsApi = this;
         }
+        return true;
       };
-
 
       /**
        * Refresh the current dashboard
+       * @returns {Boolean} True on success.
        */
       self.refreshDashboard = function () {
-        //var appScope = angular.element(window.document).scope();
         console.log("[KibanaJsApi->refreshDashboard] Refreshing dashboard");
-        //appScope.$apply('dashboard.refresh()');
         dashboard.refresh();
         $rootScope.$apply();
+        return true;
       };
 
       /**
        * Add a new query item to the queryList
+       * @param {QueryItem} queryItem Query item definition
+       * @returns {Boolean} True on success.
        */
-      self.addQuery = function() {
-        console.log("[KibanaJsApi->addQuery]");
+      self.addQuery = function( queryItem ) {
+        console.log("[KibanaJsApi->addQuery] New Item: ", queryItem);
+
+        //If nothing was passed add an empty query item
+        if( !queryItem ) {
+          queryItem = {};
+        }
 
         //Add an empty item
-        querySrv.set({});
+        querySrv.set(queryItem);
 
         //refresh and apply
         this.refreshDashboard();
+
+        return true;
       };
 
       /**
        * Get the dashboards current queryList
-       * @returns {Array<Object>} An array of query items
+       * @returns {Array<QueryItem>} An array of query items
        */
       self.getQueryList = function(){
         console.log("[KibanaJsApi->getQueryList]");
@@ -77,7 +93,7 @@ define([
 
       /**
        * Get the dashboards current queryList as a JSON String
-       * @returns {string} A JSON String representing the current array of query items
+       * @returns {String} A JSON String representing the current array of query items
        */
       self.getQueryListJson = function () {
         console.log("[KibanaJsApi->getQueryListJson]");
@@ -87,43 +103,58 @@ define([
       };
 
       /**
-       * Replace the current queryList with a new one
-       * @param queryList an array of query items
+       * Replace the current query list with a new one
+       * @param {Array<QueryItem>} queryList An array of query items
+       * @param {Boolean} append Only add elements, don't update using IDs
+       * @returns {Boolean} True on success.
        */
-      self.setQueryList = function( queryList ){
-
-        console.log("[KibanaJsApi->setQueryList] Clearing query before setting items");
-
-        //Empty the query but don't $apply yet
-        this.resetQueryList( true /*No Refresh*/ );
+      self.setQueryList = function( newList, append ){
 
         console.log("[KibanaJsApi->setQueryList] Setting query", queryList);
 
-        _.each( queryList, function(q){
-          if( q.id == 0 ) {
-            querySrv.set( q, 0 );
-          } else {
-            querySrv.set( q );
-          }
-        });
+        if( append === true ){
+
+
+
+        } else {
+
+          console.log("[KibanaJsApi->setQueryList]    Clearing query before setting items");
+
+          //Empty the query but don't $apply yet
+          this.resetQueryList( true /*No Refresh*/ );
+
+          _.each( newList, function(q){
+            if( q.id === 0 ) {
+              querySrv.set( q, 0 );
+            } else {
+              querySrv.set( q );
+            }
+          });
+
+        }
 
         //refresh and apply
         this.refreshDashboard();
+
+        return true;
       };
 
       /**
-       * Replace the current queryList with a new one using a json string
-       * @param queryListJson A JSON String representing an array of query items.
+       * Replace the current query list with a new one using a json string
+       * @param {String} queryListJson A JSON String representing an array of query items.
+       * @param {Boolean} append Only add elements, don't update using IDs
+       * @returns {Boolean} True on success.
        */
-      self.setQueryListJson = function (queryListJson) {
+      self.setQueryListJson = function (queryListJson, append) {
         console.log("[KibanaJsApi->setQueryListJson] setting query list from json text");
         var queryList = angular.fromJson(queryListJson);
-        this.setQueryList(queryList);
+        return this.setQueryList(queryList, append);
       };
 
       /**
        * Replace the current query list with a single '*'
-       * @param noRefresh When boolean true, the dashboard will not be refreshed
+       * @param {Boolean} noRefresh When boolean true, the dashboard will not be refreshed
+       * @returns {Boolean} True on success.
        */
       self.resetQueryList = function( noRefresh ){
         console.log("[KibanaJsApi->resetQueryList] Resetting query to single '*'");
@@ -146,6 +177,8 @@ define([
         if( noRefresh !== true ) {
           this.refreshDashboard();
         }
+
+        return true;
       };
 
       /**
@@ -159,7 +192,7 @@ define([
 
       /**
        * Get the dashboards current filters as a JSON string representing array of filters
-       * @returns {string}
+       * @returns {String} JSON String representation of an array of Filters.
        */
       self.getFiltersJson = function () {
         console.log("[KibanaJsApi->getFiltersJson]");
@@ -171,8 +204,9 @@ define([
       /**
        * Replace the dashboards current filters with a new set. UpdateOnly will not
        * remove any items before setting the new ones in place.
-       * @param filters An array of filters
-       * @param updateOnly Set to boolean true to skip the removal process before setting filters.
+       * @param {Array<Filter>} filters An array of filters
+       * @param {Boolean} updateOnly Set to boolean true to skip the removal process before setting filters.
+       * @returns {Boolean} True on success.
        */
       self.setFilters = function( filters, updateOnly){
         console.log("[KibanaJsApi->setFiltersJson] setting filters", filters);
@@ -188,33 +222,41 @@ define([
 
         //refresh and apply
         this.refreshDashboard();
+
+        return true;
       };
 
       /**
        * See setFilters above. Accepts a JSON String representing an array of filters.
-       * @param filtersJson
-       * @param updateOnly
+       * @param {String} filtersJson JSON String representing an array of Filters.
+       * @param {Boolean} updateOnly Set to boolean true to skip the removal process before setting filters.
+       * @returns {Boolean} True on success.
        */
       self.setFiltersJson = function (filtersJson, updateOnly) {
         console.log("[KibanaJsApi->setFiltersJson] setting filters", filtersJson);
         var filters = angular.fromJson(filtersJson);
-        this.setFilters(filters,updateOnly);
+        return this.setFilters(filters,updateOnly);
       };
 
       /**
        * Remove all the filters from the dashboard
+       * @returns {Boolean} True on success.
        */
       self.removeFilters = function () {
         console.log("[KibanaJsApi->removeFilters]");
         _.each( filterSrv.ids(), function(fId){
           filterSrv.remove(fId);
         });
+        return true;
       };
 
       /**
        * Get an object representing the current state of the dashboard.
        * This object can be used for the import functionality.
-       * @returns {{queryList: Array.<Object>, filters: Array.<Filter>}}
+       *
+       * This has not been tested
+       *
+       * @returns {{queryList: Array.<QueryItem>, filters: Array.<Filter>}}
        */
       self.exportConfig = function(){
         return {
@@ -225,7 +267,10 @@ define([
 
       /**
        * Get a JSON String representing the current config. See exportConfig above.
-       * @returns {string} JSON String of current dashboard config
+       *
+       * This has not been tested
+       *
+       * @returns {String} JSON String of current dashboard config
        */
       self.exportConfigJson = function(){
         return angular.toJson(this.exportConfig(), true);
@@ -233,20 +278,29 @@ define([
 
       /**
        * Import a previously exported dashboard state.
-       * @param config
+       *
+       * This has not been tested.
+       *
+       * @param {Config} config
+       * @returns {Boolean} True on success.
        */
       self.importConfig = function( config ){
         this.setFilters( config.filters );
         this.setQueryList( config.queryList );
         this.refreshDashboard();
+        return true;
       };
 
       /**
        * Import a previously exported dashboard state from a JSON String.
-       * @param configJson
+       *
+       * This has not been tested
+       *
+       * @param {String} configJson JSON String representing a Config object.
+       * @returns {Boolean} True on success.
        */
       self.importConfigJson = function( configJson ){
-        this.importConfig( angular.fromJson(configJson) );
+        return this.importConfig( angular.fromJson(configJson) );
       };
 
       // Now init
