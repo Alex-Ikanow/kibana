@@ -79,7 +79,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 	},
 
 	/**
-	* Asks actionscript for communityIds. 
+	* Asks actionscript for communityIds.
 	*/
 	getCommunityIds: function(url)
 	{
@@ -92,7 +92,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 		return cIdsStr;
 	},
 	/**
-	* Asks actionscript for data set flags (docs vs custom vs map/reduce). 
+	* Asks actionscript for data set flags (docs vs custom vs map/reduce).
 	*/
 	getDatasetFlags: function()
 	{
@@ -131,7 +131,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 	},
 
 	/**
-	* Generally called from actionscript with a true if live, false if stashed. 
+	* Generally called from actionscript with a true if live, false if stashed.
 	* This function will set the mode within the infiniteJsConnector object
 	* to be grabbed whenever an httpservice call is made and "mode" is required.
 	**/
@@ -142,7 +142,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 			//production location
 			window.location = "/infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_LiveTemplate.json";
 			infiniteJsConnector.setMode('live');
-			
+
 		}else if(isLive==false){
 			//development location
 			//window.location = "kibanaBin/dist/index.html#Kibana_StashedTemplate.json";
@@ -154,7 +154,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 
 	/**
 	* Called before init when url parameters are provided.
-	* URL parameters are only ever supplied when the widget is run outside 
+	* URL parameters are only ever supplied when the widget is run outside
 	* of an actionscript iframe.
 	*
 	* Takes the provided parameter string and grabs the cids and mode.
@@ -184,14 +184,15 @@ var infiniteJsConnector = infiniteJsConnector || {
 };
 
 /**
+ * Angular app modifications.
+ * Inject kibanaJsApi
  * Intercepts all http requests and adds required extra parameters
  */
 require(['app', 'angular'], function (app, angular) {
 
 	//Configure the kibanaJsApi when angular is done loading the app
 	app.run(function(kibanaJsApiSrv) {
-		//Add the api to the window and the window's parent if it exists
-		kibanaJsApiSrv.install( true );
+		//To use this API instance from the parent container,
 	});
 
 	//Create an http interceptor to alter kibana->elasticsearch requests
@@ -226,8 +227,6 @@ require(['app', 'angular'], function (app, angular) {
 			}
 		};
 	});
-
-
 });
 
 /**
@@ -248,4 +247,17 @@ window.onload = function(){
 	catch (e) {
 		//alert("infinite init error: " + e);
 	}
+}
+
+/**
+ * Helper function to allow a parent container to trigger the installation on the parent.
+ * After installation, window.kibanaJsApi should be available on the parent container.
+ *
+ * eg. ( from Flex )
+ * kibanaFrame.callIFrameFunction('installKibanaJsApiToParent'); //Trigger parent install
+ * ExternalInterface.call("kibanaJsApi.refreshDashboard");			 //Use API Locally
+ */
+function installKibanaJsApiToParent(){
+	//console.log("Installing to parent via IFrame helper function.");
+	kibanaJsApi.installToParent();
 }
