@@ -234,7 +234,7 @@ define([
             //Even if the filter has an ID, if that ID does not exist we must add it. Updating will fail.
             var filterExists = false;
             _.each( this.getFilters(), function(f){
-              if(f.id == filter.id) {
+              if(f.id === filter.id) {
                 filterExists = true;
               }
             });
