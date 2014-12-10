@@ -18,38 +18,55 @@
 
 var infiniteJsConnector = infiniteJsConnector || {
 
-	_flashMovie: null,
+	_flashMovie: null,			// Container FLEX Application
 	_jsConnectorParent: null,
-	_mode: 'stashed',
+	_mode: 'stashed',			// 'stashed' or 'live'
+
+	/**
+	 * Initialization consists of defining flashMove in order to communicate
+	 * with the actionscript
+	 */
+	init: function () {
+		if (null == this._flashMovie) {
+			if (document.getElementById) {
+				this._flashMovie = parent.document.getElementById("Index");
+			}
+		}
+	},
 
 	getFlashMovie: function(){
 		return this._flashMovie;
 	},
+
 	/**
-	*	possible values:
-	*	- live 			... append: &mode=live
-	*	- stashed 		... append: &mode=stashed
-	*   ignore for now   - all records 	... append: &mode=all_records
-	**/
-	getMode: function(){
-		return this._mode;
-	},
-	/**
-	* Grabs the infinit.e.parent js connector object;
-	*/
+	 * Grabs the infinit.e.parent js connector object;
+	 */
 	getJsConnectorParent: function(){
 		this._jsConnectorParent = parent.infiniteJsConnectorParent;
 		return parent.infiniteJsConnectorParent;
 	},
-	/** returns set cids **/
-	getCIds: function(url){
-		return this.getCommunityIds(url);
+
+	/**
+ 	 *	possible values:
+	 *	- live 			... append: &mode=live
+	 *	- stashed 		... append: &mode=stashed
+	 *   ignore for now   - all records 	... append: &mode=all_records
+	 **/
+	getMode: function(){
+		return this._mode;
 	},
+
 	/** sets mode **/
 	setMode:function(modeString){
 		this._mode = modeString;
 		return this._mode;
 	},
+
+	/** returns set cids **/
+	getCIds: function(url){
+		return this.getCommunityIds(url);
+	},
+
 	getParentId: function() {
         var parentDoc = window;
         while(parentDoc !== parentDoc.parent)
@@ -60,20 +77,9 @@ var infiniteJsConnector = infiniteJsConnector || {
         var iFrames = parentDoc.getElementsByTagName('iframe');
         return iFrames[0].getAttribute("id");
 	},
+
 	/**
-	* Initialization consists of defining flashMove in order to communicate
-	* with the actionscript
-	*/
-	init: function () {
-		var me = this;
-			if (null == me._flashMovie) {
-				if (document.getElementById) {
-					me._flashMovie = parent.document.getElementById("Index");
-				}else{}
-			}
-	},
-	/**
-	* Asks actionscript for communityIds. 
+	* Asks actionscript for communityIds.
 	*/
 	getCommunityIds: function(url)
 	{
@@ -86,7 +92,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 		return cIdsStr;
 	},
 	/**
-	* Asks actionscript for data set flags (docs vs custom vs map/reduce). 
+	* Asks actionscript for data set flags (docs vs custom vs map/reduce).
 	*/
 	getDatasetFlags: function()
 	{
@@ -98,6 +104,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 		}
 		return datasetFlags;
 	},
+
 	/**
 	*	grabs community ids and current search state
 	*	returns string ex: ?cids=1,2,3&mode=live
@@ -122,8 +129,9 @@ var infiniteJsConnector = infiniteJsConnector || {
 			return null;
 		}
 	},
+
 	/**
-	* Generally called from actionscript with a true if live, false if stashed. 
+	* Generally called from actionscript with a true if live, false if stashed.
 	* This function will set the mode within the infiniteJsConnector object
 	* to be grabbed whenever an httpservice call is made and "mode" is required.
 	**/
@@ -134,7 +142,7 @@ var infiniteJsConnector = infiniteJsConnector || {
 			//production location
 			window.location = "/infinit.e.records/static/kibana/index.html#/dashboard/file/Kibana_LiveTemplate.json";
 			infiniteJsConnector.setMode('live');
-			
+
 		}else if(isLive==false){
 			//development location
 			//window.location = "kibanaBin/dist/index.html#Kibana_StashedTemplate.json";
@@ -143,9 +151,10 @@ var infiniteJsConnector = infiniteJsConnector || {
 			infiniteJsConnector.setMode('stashed');
 		}
 	},
+
 	/**
-	* Called when url parameters are provided. 
-	* URL parameters are only ever supplied when the widget is run outside 
+	* Called before init when url parameters are provided.
+	* URL parameters are only ever supplied when the widget is run outside
 	* of an actionscript iframe.
 	*
 	* Takes the provided parameter string and grabs the cids and mode.
@@ -172,5 +181,83 @@ var infiniteJsConnector = infiniteJsConnector || {
 			}
 		}
 	}
+};
 
+/**
+ * Angular app modifications.
+ * Inject kibanaJsApi
+ * Intercepts all http requests and adds required extra parameters
+ */
+require(['app', 'angular'], function (app, angular) {
+
+	//Configure the kibanaJsApi when angular is done loading the app
+	app.run(function(kibanaJsApiSrv) {
+		//To use this API instance from the parent container,
+	});
+
+	//Create an http interceptor to alter kibana->elasticsearch requests
+	app.config(function($httpProvider){
+		$httpProvider.interceptors.push('myHttpInterceptor');
+		$httpProvider.defaults.withCredentials = true;
+	})
+	.factory('myHttpInterceptor', function($q, $window){
+		return {
+			request: function(config){
+				// LOG AT REQUEST START
+				try{
+					//This and also if already includes ? then append as & instead...
+					if (config.url.slice(0, 4) != 'http') {
+						return config || $q.when(config);
+					}
+					var extraParams = infiniteJsConnector.getExtraUrlParams(config.url);
+					if(extraParams != null){
+						if (null == config.params) {
+							config.params = extraParams;
+						}
+						else {
+							for (var x in extraParams) {
+								config.params[x] = extraParams[x];
+							}
+						}
+					}
+				}catch(error){
+					/*fail here could happen if infiniteJsConnector is not ready yet*/
+				}
+				return config || $q.when(config);
+			}
+		};
+	});
+});
+
+/**
+ * If the widget is loaded on its own (outside of an iframe), the URL parameters
+ * must be checked in order to get cids and search mode.
+ *
+ * On Page load added in order to check URL parameters and set them appropriately.
+ */
+window.onload = function(){
+	try {
+
+		if (window.location.search.length > 0){
+			infiniteJsConnector.onWidgetLoadWithParameters(window.location.search);
+		}
+
+		infiniteJsConnector.init();
+	}
+	catch (e) {
+		//alert("infinite init error: " + e);
+	}
+}
+
+/**
+ * Helper function to allow a parent container to trigger the installation on the parent.
+ * After installation, window.kibanaJsApi should be available on the parent container.
+ *
+ * eg. ( from Flex )
+ * kibanaFrame.callIFrameFunction('installKibanaJsApiToParent'); //Trigger parent install
+ * ExternalInterface.call("kibanaJsApi.refreshDashboard");			 //Use API Locally
+ */
+function installKibanaJsApiToParent(){
+	//console.log("Installing to parent via IFrame helper function.");
+	kibanaJsApi.installToParent();
 }
