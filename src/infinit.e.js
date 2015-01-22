@@ -184,52 +184,6 @@ var infiniteJsConnector = infiniteJsConnector || {
 };
 
 /**
- * Angular app modifications.
- * Inject kibanaJsApi
- * Intercepts all http requests and adds required extra parameters
- */
-require(['app', 'angular'], function (app, angular) {
-
-	//Configure the kibanaJsApi when angular is done loading the app
-	app.run(function(kibanaJsApiSrv) {
-		//To use this API instance from the parent container,
-	});
-
-	//Create an http interceptor to alter kibana->elasticsearch requests
-	app.config(function($httpProvider){
-		$httpProvider.interceptors.push('myHttpInterceptor');
-		$httpProvider.defaults.withCredentials = true;
-	})
-	.factory('myHttpInterceptor', function($q, $window){
-		return {
-			request: function(config){
-				// LOG AT REQUEST START
-				try{
-					//This and also if already includes ? then append as & instead...
-					if (config.url.slice(0, 4) != 'http') {
-						return config || $q.when(config);
-					}
-					var extraParams = infiniteJsConnector.getExtraUrlParams(config.url);
-					if(extraParams != null){
-						if (null == config.params) {
-							config.params = extraParams;
-						}
-						else {
-							for (var x in extraParams) {
-								config.params[x] = extraParams[x];
-							}
-						}
-					}
-				}catch(error){
-					/*fail here could happen if infiniteJsConnector is not ready yet*/
-				}
-				return config || $q.when(config);
-			}
-		};
-	});
-});
-
-/**
  * If the widget is loaded on its own (outside of an iframe), the URL parameters
  * must be checked in order to get cids and search mode.
  *

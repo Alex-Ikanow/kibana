@@ -31,6 +31,8 @@ function (Settings) {
      */
     elasticsearch: window.location.protocol+"//"+window.location.hostname+':'+(window.location.port==''?(window.location.protocol=='https:'?443:80):window.location.port)+"/infinit.e.records/proxy",
 
+    //elasticsearch: "https://infinite.ikanow.com/infinit.e.records/proxy",
+
     /** @scratch /configuration/config.js/5
      *
      * ==== default_route
