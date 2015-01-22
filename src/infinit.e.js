@@ -216,16 +216,16 @@ function installKibanaJsApiToParent(){
 	kibanaJsApi.installToParent();
 }
 
-function QueryTerm(q)
+function QueryTerm(q, index)
 {
     this.query = q;
     this.alias = "";
-    this.color= "#7EB26D";
-	//this.id = 0;
+    this.color= "#214F8A";
+	this.id = index;
     this.pin = false;
     this.type = "lucene";
     this.enable = true;
-    this.parent = 0;
+    this.parent = index;
 }
 
 function TimeTerm(from_value, to_value)
@@ -250,15 +250,15 @@ mirrorQuery = function(query_string){
 	    {
 	        if (null != term.etext)
 	        {
-	            kibana_q.push(new QueryTerm(term.etext));
+	            kibana_q.push(new QueryTerm(term.etext, kibana_q.length));
 	        }
 	        else if ( null != term.ftext)
 	        {
-	        	kibana_q.push(new QueryTerm(term.ftext));
+	        	kibana_q.push(new QueryTerm(term.ftext, kibana_q.length));
 	        }
 	        else if ( null != term.entity)
 	        {
-	        	kibana_q.push(new QueryTerm(term.entity.split("/")[0]));
+	        	kibana_q.push(new QueryTerm(term.entity.split("/")[0], kibana_q.length));
 	        }
 	        else if ( null != term.time && null != term.time.min && null != term.time.max)
 	        {
@@ -277,6 +277,10 @@ mirrorQuery = function(query_string){
 	{
     	kibanaJsApi.setFilters(kibana_f, false, false);
 	}
+}
+
+refreshKibana = function(){
+	kibanaJsApi.refreshDashboard();
 }
 
 
@@ -308,7 +312,7 @@ entitiesToQuery = function(jsonString){
                 {                   
                     if (decomposeInfiniteQuery == true)
                     {
-                        kibana_q.push(new QueryTerm(ent.actual_name));
+                        kibana_q.push(new QueryTerm(ent.actual_name, kibana_q.length));
                     }
                     else
                     {
@@ -324,7 +328,7 @@ entitiesToQuery = function(jsonString){
         
         if (null != singleQ && singleQ != '')
         {
-            kibana_q.push(new QueryTerm(singleQ));  
+            kibana_q.push(new QueryTerm(singleQ, kibana_q.length));  
         }
         
         if (null != kibana_q && kibana_q.length > 0)
