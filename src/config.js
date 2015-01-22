@@ -29,9 +29,9 @@ function (Settings) {
      *  +elasticsearch: {server: "http://localhost:9200", withCredentials: true}+
      *
      */
-    //elasticsearch: window.location.protocol+"//"+window.location.hostname+':'+(window.location.port==''?(window.location.protocol=='https:'?443:80):window.location.port)+"/infinit.e.records/proxy",
+    elasticsearch: window.location.protocol+"//"+window.location.hostname+':'+(window.location.port==''?(window.location.protocol=='https:'?443:80):window.location.port)+"/infinit.e.records/proxy",
 
-    elasticsearch: "https://infinite.ikanow.com/infinit.e.records/proxy",
+    //elasticsearch: "https://infinite.ikanow.com/infinit.e.records/proxy",
 
     /** @scratch /configuration/config.js/5
      *

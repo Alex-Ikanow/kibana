@@ -1,7 +1,7 @@
 #Kibana JS API
 -
 
-Built by Ikanow to expose some internal kibana functionality via a simple JavaScript API. Currently only tested using Kibana 3. Some simle tests for this application exist as a FlashBuilder application. The test application opens Kibana within an IFrame and tests the exposed functionality. For more information and source code [Check out the BitBucket git repository](https://bitbucket.org/mike_grill/com.ikanow.infinite.kibana.tests/src).
+Built by Ikanow to expose some internal kibana functionality via a simple JavaScript API. Currently only tested using Kibana 3. Some simple tests for this application exist as a FlashBuilder application. The test application opens Kibana within an IFrame and tests the exposed functionality. For more information and source code [Check out the BitBucket git repository](https://bitbucket.org/mike_grill/com.ikanow.infinite.kibana.tests/src).
 
 **Function Summary**
 
