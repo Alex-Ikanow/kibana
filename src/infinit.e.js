@@ -215,3 +215,123 @@ function installKibanaJsApiToParent(){
 	//console.log("Installing to parent via IFrame helper function.");
 	kibanaJsApi.installToParent();
 }
+
+function QueryTerm(q)
+{
+    this.query = q;
+    this.alias = "";
+    this.color= "#7EB26D";
+	//this.id = 0;
+    this.pin = false;
+    this.type = "lucene";
+    this.enable = true;
+    this.parent = 0;
+}
+
+function TimeTerm(from_value, to_value)
+{
+	this.type = "time";
+	this.field = "@timestamp";
+	this.from = from_value;
+	this.to = to_value;
+	this.mandate = "must";
+	this.active = true;
+	this.alias = "";
+}
+
+mirrorQuery = function(query_string){
+	var query = JSON.parse(query_string);
+	var kibana_q = [];
+    var kibana_f = [];
+    for( var i = 0; i < query.qt.length; i++ ){
+        var term = query.qt[i];
+	    
+	    if ( null != term)
+	    {
+	        if (null != term.etext)
+	        {
+	            kibana_q.push(new QueryTerm(term.etext));
+	        }
+	        else if ( null != term.ftext)
+	        {
+	        	kibana_q.push(new QueryTerm(term.ftext));
+	        }
+	        else if ( null != term.entity)
+	        {
+	        	kibana_q.push(new QueryTerm(term.entity.split("/")[0]));
+	        }
+	        else if ( null != term.time && null != term.time.min && null != term.time.max)
+	        {
+	        	kibana_f.push(new TimeTerm(term.time.min, term.time.max));
+	        }
+	    }
+	   
+	}
+    
+    if (null != kibana_q)
+	{
+    	kibanaJsApi.setQueryList(kibana_q, false, false);
+	}
+    
+    if (null != kibana_f)
+	{
+    	kibanaJsApi.setFilters(kibana_f, false, false);
+	}
+}
+
+
+entitiesToQuery = function(jsonString){
+	var obj = JSON.parse(jsonString);
+	if (null != obj) {
+        var termsOverride = 'AND';
+        var decomposeInfiniteQuery = false;
+        var appendToExistingKibanaQueries = false;
+        var singleQ = "";
+        var kibana_q = [];
+        
+        
+        if (null != obj.termsOverride){
+             termsOverride = obj.termsOverride;   
+        }
+        if (null != obj.decomposeInfiniteQuery){
+             decomposeInfiniteQuery = obj.decomposeInfiniteQuery;   
+        }
+        if (null != obj.appendToExistingKibanaQueries){
+             appendToExistingKibanaQueries = obj.appendToExistingKibanaQueries;   
+        }
+        
+        if ( null != obj.entities && null != obj.entities.source && null != obj.entities.source)
+        {
+            for( var i = 0; i < obj.entities.source.length; i++ ){
+                 var ent = obj.entities.source[i];
+                if ( null != ent && null != ent.actual_name)
+                {                   
+                    if (decomposeInfiniteQuery == true)
+                    {
+                        kibana_q.push(new QueryTerm(ent.actual_name));
+                    }
+                    else
+                    {
+                        if (singleQ == '')
+                            singleQ = ent.actual_name;
+                        else
+                            singleQ += ' ' + termsOverride + ' ' + ent.actual_name;
+                    }
+                    
+                }
+            }
+        }
+        
+        if (null != singleQ && singleQ != '')
+        {
+            kibana_q.push(new QueryTerm(singleQ));  
+        }
+        
+        if (null != kibana_q && kibana_q.length > 0)
+        {
+        	kibanaJsApi.setQueryList(kibana_q, appendToExistingKibanaQueries, appendToExistingKibanaQueries);
+        }
+        
+        
+    }
+}
