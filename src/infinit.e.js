@@ -239,6 +239,16 @@ function TimeTerm(from_value, to_value)
 	this.alias = "";
 }
 
+function FilterString(q, index)
+{
+	this.id = index;
+	this.type = "querystring";
+	this.query = q;
+	this.mandate = "must";
+	this.active = true;
+	this.alias = "";
+}
+
 mirrorQuery = function(query_string){
 	var query = JSON.parse(query_string);
 	var kibana_q = [];
@@ -283,59 +293,132 @@ refreshKibana = function(){
 	kibanaJsApi.refreshDashboard();
 }
 
-
-entitiesToQuery = function(jsonString){
-	var obj = JSON.parse(jsonString);
-	if (null != obj) {
-        var termsOverride = 'AND';
-        var decomposeInfiniteQuery = false;
-        var appendToExistingKibanaQueries = false;
-        var singleQ = "";
-        var kibana_q = [];
-        
-        
-        if (null != obj.termsOverride){
-             termsOverride = obj.termsOverride;   
-        }
-        if (null != obj.decomposeInfiniteQuery){
-             decomposeInfiniteQuery = obj.decomposeInfiniteQuery;   
-        }
-        if (null != obj.appendToExistingKibanaQueries){
-             appendToExistingKibanaQueries = obj.appendToExistingKibanaQueries;   
-        }
-        
-        if ( null != obj.entities && null != obj.entities.source && null != obj.entities.source)
-        {
-            for( var i = 0; i < obj.entities.source.length; i++ ){
-                 var ent = obj.entities.source[i];
-                if ( null != ent && null != ent.actual_name)
-                {                   
-                    if (decomposeInfiniteQuery == true)
-                    {
-                        kibana_q.push(new QueryTerm(ent.actual_name, kibana_q.length));
-                    }
-                    else
-                    {
-                        if (singleQ == '')
-                            singleQ = ent.actual_name;
-                        else
-                            singleQ += ' ' + termsOverride + ' ' + ent.actual_name;
-                    }
-                    
-                }
-            }
-        }
-        
-        if (null != singleQ && singleQ != '')
-        {
-            kibana_q.push(new QueryTerm(singleQ, kibana_q.length));  
-        }
-        
-        if (null != kibana_q && kibana_q.length > 0)
-        {
-        	kibanaJsApi.setQueryList(kibana_q, appendToExistingKibanaQueries, appendToExistingKibanaQueries);
-        }
-        
-        
-    }
+ikanowObjectsToKibana = function(ikanowControlObject){
+	if (null != ikanowControlObject)
+	{
+		try{
+			var obj = JSON.parse(ikanowControlObject.toString());
+		}
+		catch (err) {
+			try{
+				var obj = JSON.parse(ikanowControlObject.toString().replace(/[\b]/g, '\\b').replace(/[\f]/g, '\\f').replace(/[\n]/g, '\\n').replace(/[\r]/g, '\\r').replace(/[\t]/g, '\\t'));
+			}
+			catch (err2) {
+				alert("Unable to Process Data:  " + err2);
+			}
+		}
+		
+		if (null != obj) {
+	        var termsOverride = 'AND';
+	        var decomposeInfiniteQuery = false;
+	        var appendToExistingKibanaQueries = false;
+	        var applyToFilter = false;
+	        var singleQ = "";
+	        var kibana_q = [];
+	        
+	        if (null != obj.termsOverride){
+	             termsOverride = obj.termsOverride;   
+	        }
+	        if (null != obj.decomposeInfiniteQuery){
+	             decomposeInfiniteQuery = obj.decomposeInfiniteQuery;   
+	        }
+	        if (null != obj.appendToExistingKibanaQueries){
+	             appendToExistingKibanaQueries = obj.appendToExistingKibanaQueries;   
+	        }
+	        if (null != applyToFilter) {
+	        	applyToFilter = obj.applyToFilter;
+	        }
+	        
+	        //Entities
+	        if ( null != obj.entities && null != obj.entities.source)
+	        {
+	            for( var i = 0; i < obj.entities.source.length; i++ ){
+	                 var ent = obj.entities.source[i];
+	                if ( null != ent && null != ent.actual_name)
+	                {                   
+	                    if (decomposeInfiniteQuery == true)
+	                    {
+	                    	if (applyToFilter == true)
+	                    		kibana_q.push(new FilterString('"' + ent.actual_name + '"', kibana_q.length));
+	                    	else
+	                    		kibana_q.push(new QueryTerm('"' + ent.actual_name + '"', kibana_q.length));
+	                    }
+	                    else
+	                    {
+	                        if (singleQ == '')
+	                            singleQ = '"' + ent.actual_name + '"';
+	                        else
+	                            singleQ += ' ' + termsOverride + ' "' + ent.actual_name + '"';
+	                    }
+	                }
+	            }
+	        }
+	        
+	        //Associations
+	        if (null != obj.associations && null != obj.associations.source)
+        	{
+	        	for( var i = 0; i < obj.associations.source.length; i++ ){
+	        		var association = obj.associations.source[i];
+	        		var entity1 = null;
+	        		var entity2 = null;
+	        		if (null != association.entity1)
+	        			entity1 = association.entity1;
+	        		if (null != association.entity2)
+	        			entity2 = association.entity2;
+	        		if (null == entity1 && null != association.entity1_index)
+	        			entity1 = association.entity1_index.substring(0,association.entity1_index.lastIndexOf("/"));
+	        		if (null == entity2 && null != association.entity2_index)
+	        			entity2 = association.entity2_index.substring(0,association.entity2_index.lastIndexOf("/"));
+	        		
+	        		if ( null != association && (null != entity1 || null != entity2))
+	                {
+	        			var term = '';
+	        			if (null !=  entity1 && null != entity2)
+	        			{
+	        				term = '("' + entity1 + '" AND "' + entity2 + '")';
+	        			}
+	        			else
+	        			{
+	        				if (null !=  entity1)
+	        					term = '"' + entity1 + "'";
+	        				else if (null !=  entity2)
+	        					term = '"' + entity2 + '"';
+	        			}
+	        			
+	        			if (decomposeInfiniteQuery == true)
+	                    {
+        					if (applyToFilter == true)
+        						kibana_q.push(new FilterString(term, kibana_q.length));
+        					else
+        						kibana_q.push(new QueryTerm(term, kibana_q.length));
+	                    }
+	                    else
+	                    {
+	                        if (singleQ == '')
+	                            singleQ = term;
+	                        else
+	                            singleQ += ' ' + termsOverride + ' ' + term ;
+	                    }
+	        			
+	                }
+	        	}
+        	}
+	        
+	        if (null != singleQ && singleQ != '')
+	        {
+	        	if (applyToFilter == true)
+	        		kibana_q.push(new FilterString(singleQ, kibana_q.length)); 
+	        	else
+	        		kibana_q.push(new QueryTerm(singleQ, kibana_q.length)); 
+	        }
+	        
+	        if (null != kibana_q && kibana_q.length > 0)
+	        {
+	        	if (applyToFilter == true)
+	        		kibanaJsApi.setFilters(kibana_q, appendToExistingKibanaQueries, appendToExistingKibanaQueries);
+	        	else
+	        		kibanaJsApi.setQueryList(kibana_q, appendToExistingKibanaQueries, appendToExistingKibanaQueries);
+	        } 
+	    }//Null check on JsonParse
+	}// Null Check on ikanowControlObject
 }
