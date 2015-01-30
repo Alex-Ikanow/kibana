@@ -220,7 +220,6 @@ function QueryTerm(q, index)
 {
     this.query = q;
     this.alias = "";
-    this.color= "#214F8A";
 	this.id = index;
     this.pin = false;
     this.type = "lucene";
@@ -315,6 +314,7 @@ ikanowObjectsToKibana = function(ikanowControlObject){
 	        var applyToFilter = false;
 	        var singleQ = "";
 	        var kibana_q = [];
+	        var kibana_f = [];
 	        
 	        if (null != obj.termsOverride){
 	             termsOverride = obj.termsOverride;   
@@ -334,25 +334,51 @@ ikanowObjectsToKibana = function(ikanowControlObject){
 	        {
 	            for( var i = 0; i < obj.entities.source.length; i++ ){
 	                 var ent = obj.entities.source[i];
-	                if ( null != ent && null != ent.actual_name)
-	                {                   
-	                    if (decomposeInfiniteQuery == true)
-	                    {
-	                    	if (applyToFilter == true)
-	                    		kibana_q.push(new FilterString('"' + ent.actual_name + '"', kibana_q.length));
-	                    	else
-	                    		kibana_q.push(new QueryTerm('"' + ent.actual_name + '"', kibana_q.length));
-	                    }
-	                    else
-	                    {
-	                        if (singleQ == '')
-	                            singleQ = '"' + ent.actual_name + '"';
-	                        else
-	                            singleQ += ' ' + termsOverride + ' "' + ent.actual_name + '"';
-	                    }
-	                }
-	            }
-	        }
+	                
+	                if ( null != ent)
+	                {        
+	                	var ent_term = null;
+	                	if (null != ent.actual_name)
+	                	{
+	                		ent_term = ent.actual_name;
+	                	}
+	                	else if ( null != ent.etext)
+	                	{
+	                		ent_term = ent.etext;
+	                	}
+	                	else if ( null != ent.ftext)
+	                	{
+	                		ent_term = ent.ftext;
+	                	}
+	                	else if ( null != ent.entity)
+	                	{
+	                		ent_term = ent.entity.substring(0,ent.entity.lastIndexOf("/"));
+	                	}
+	                	else if ( null != ent.time && null != ent.time.min && null != ent.time.max)
+		     	        {
+		     	        	kibana_f.push(new TimeTerm(ent.time.min, ent.time.max));
+		     	        }
+	                	
+	                	if (null != ent_term)
+	                	{
+		                    if (decomposeInfiniteQuery == true)
+		                    {
+		                    	if (applyToFilter == true)
+		                    		kibana_q.push(new FilterString('"' + ent_term + '"', kibana_q.length));
+		                    	else
+		                    		kibana_q.push(new QueryTerm('"' + ent_term + '"', kibana_q.length));
+		                    }
+		                    else
+		                    {
+		                        if (singleQ == '')
+		                            singleQ = '"' + ent_term + '"';
+		                        else
+		                            singleQ += ' ' + termsOverride + ' "' + ent_term + '"';
+		                    }
+	                	}
+	                }// if (null != ent)
+	            } //for loop
+	        } //if ( null != obj.entities && null != obj.entities.source)
 	        
 	        //Associations
 	        if (null != obj.associations && null != obj.associations.source)
@@ -419,6 +445,15 @@ ikanowObjectsToKibana = function(ikanowControlObject){
 	        	else
 	        		kibanaJsApi.setQueryList(kibana_q, appendToExistingKibanaQueries, appendToExistingKibanaQueries);
 	        } 
+	        
+	        if (null != kibana_f && kibana_f.length > 0)
+	        {
+	        	if (applyToFilter == true)
+	        		kibanaJsApi.setFilters(kibana_f, true, true);
+	        	else
+	        		kibanaJsApi.setFilters(kibana_f, appendToExistingKibanaQueries, appendToExistingKibanaQueries);
+	        }
+	        
 	    }//Null check on JsonParse
 	}// Null Check on ikanowControlObject
 }
