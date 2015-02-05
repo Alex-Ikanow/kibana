@@ -44,6 +44,10 @@
                             }
                             var extraParams = infiniteJsConnector.getExtraUrlParams(config.url);
                             if(extraParams != null){
+                            	if (null != extraParams.url) {
+                            		config.url = extraParams.url;
+                            		delete extraParams.url;
+                            	}
                                 if (null == config.params) {
                                     config.params = extraParams;
                                 }

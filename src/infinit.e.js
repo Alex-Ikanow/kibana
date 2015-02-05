@@ -123,6 +123,20 @@ var infiniteJsConnector = infiniteJsConnector || {
 					}
 				}
 			}
+			if (url.length > 512) { // use substitution 
+				var startOfIndex = url.indexOf('/proxy/');
+				if (startOfIndex > 0) {
+					var indexSet = url.substring(startOfIndex + 7);
+					var endOfIndex = indexSet.indexOf('/');
+					if (endOfIndex > 0) {
+						indexSet = indexSet.substring(0, endOfIndex);
+						params.indexes = indexSet;
+						url = url.replace(indexSet, '$indexes');
+						params.url = url;
+					}
+				}
+			}
+			
 			return params;
 		}catch(error){
 			console.log("getExtraUrlParams: " + error.message)
